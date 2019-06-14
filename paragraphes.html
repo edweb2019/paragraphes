@@ -18,38 +18,12 @@
 </style>
 <script>
 
-//TODO 1) : au chargement de la page, 
-// Ajouter les boutons + en haut et en bas 
-// associés à un champ de saisie 
-// Chaque bouton + doit permettre l'insertion 
-// d'un nouveau paragraphe ayant pour contenu 
-// celui du champ à côté de lui 
-
-// BONUS: une seule fonction gestionnaire d'événement click
-// pour les DEUX boutons 
-
-//TODO 2) : permettre l'édition des paragraphes
-// Lors du survol : on change la forme du pointeur de souris
-// Lors du clic : on passe en mode "édition" en remplaçant le champ d'entrée texte par un champ de formulaire 
-// Appui sur entrée : valide la saisie
-// Appui sur ESC : annule la saisie et restaure le(s) paragraphe(s)
-
 var jP = $("<p>")
 			.html("Nouveau P"); 
 
 var jBtnPlus = $('<input type="button">')
 	.val("+")
 	.click(function(){
-		// $(this) dénotera le bouton effectif cliqué
-		console.log("bouton + " 
-					+ $(this).parent().data("pos"));
-
-		// $(this).parent() <=> <div commun>
-		// $(this).next() => frère suivant
-  
-		// Quel est le contenu du champ texte ? 
-		console.log("texte = " 
-					+ $(this).next().val());
 
 		var jPClone = jP.clone(); 
 		var contenu = $(this).next().val(); 
@@ -60,10 +34,7 @@ var jBtnPlus = $('<input type="button">')
 			$("#contenu").prepend(jPClone);
 		} else {
 			$("#contenu").append(jPClone);
-		}
-		
-		// NB : .parents() existe 
-		// NB : .data() peut récupérer les attributs HTML5 data-* 		
+		}	
 	}); 
 
 var jT = $('<input type="text"/>')
@@ -76,6 +47,8 @@ var jComposant = $("<div>")
 					.append(jT); 
 
 $(document).ready(function(){ // au chargement...
+
+	getArticle(); // Récup des méta-données de l'article
 
 	// ajout des composants btn +
 	$("body").prepend(jComposant.clone(true).data("pos","top"));
@@ -124,10 +97,66 @@ var jTa = $("<textarea>")
 		}
 	}); 
 			
+/*
+Connexion à l'API
+*/
+
+var auth = {
+	"base":"http://tomnab.fr/paragraphes-api", 
+	"hash":"1ebfedad872ccf5c49d61a50f3d543cc", 
+	"idArticle" : 16 
+}; 
+// user : tp14juin
+// article : "Article1"
+
+function getArticle() {
+
+	$.getJSON(	auth.base + "/articles/" + auth.idArticle, 
+				{"hash":auth.hash}, 
+				function(oRep){
+		console.log(oRep);
+		var divArticle = $("<div>")
+					.html("Article " + oRep.article.id 
+							+ " : " + oRep.article.titre ); 
+
+		$("body").prepend(divArticle);
+	}); 
+
+/* identique à : 
+	$.ajax({
+	  type: "GET",
+	  url: auth.base + "/articles/" + auth.idArticle,
+	  data: {"hash":auth.hash},
+	  success: function(oRep){
+			console.log(oRep);
+			$("body").prepend(); 
+		},
+	  dataType: "json"
+	});
+*/
+
+}
+
+/* // EXEMPLE
+$(document).ready(function(){
+
+	$.ajax({
+	  type: "POST",
+	  url: "http://tomnab.fr/paragraphes-api/authenticate",
+	  data: {"user":"tom","password":"web"},
+	  success: function(oRep){
+			console.log(oRep); 
+		},
+	  dataType: "json"
+	});
+});
+*/
+
 
 </script>
 
 <body>
+
 
 <div id="contenu">
 <p>P1</p><p>P2</p><p>P3</p><p>P4</p>
