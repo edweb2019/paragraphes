@@ -15,6 +15,15 @@
 	margin : 3px 0;
 	resize:none;
 }
+
+.disabled {
+	background-color:lightgrey !important; 
+	font-style:italic;
+}
+.disabled:hover {
+	cursor: wait !important; 
+} 
+
 </style>
 <script>
 
@@ -35,6 +44,10 @@ var jBtnPlus = $('<input type="button">')
 		} else {
 			$("#contenu").append(jPClone);
 		}	
+
+		// Envoyer une requete au niveau API 
+		creerParagraphe(jPClone); 
+		
 	}); 
 
 var jT = $('<input type="text"/>')
@@ -59,6 +72,9 @@ $(document).ready(function(){ // au chargement...
 	$(document).on("click","#contenu p", function(){
 		// $(this) dénote le P cliqué !
 		console.log("clic sur "  + $(this).html());
+
+		// Si l'élément est désactivé, on ne fait rien... 
+		if ($(this).data("disabled")) return;
 
 		var contenu = $(this).html(); 
 		// TODO: On remplace ce <p> par un textarea
@@ -104,6 +120,8 @@ var jTa = $("<textarea>")
 			.keydown(function(contexte){
 		console.log(contexte);	
 		if (contexte.key == "Enter") {
+			// MODIFICATION d'un paragraphe
+
 			// TODO: remplacer ce <textarea> par un <p>	
 			var contenu = $(this).val();
 			var jPClone = jP.clone(true).html(contenu); 
@@ -115,20 +133,101 @@ var jTa = $("<textarea>")
 			jPClone.data("contenu",contenu);
 			
 			$(this).replaceWith(jPClone);
+
+			// TODO: envoyer la modif au serveur 
+			// attendre l'acquitement 
+			// tant que l'acquitement n'a pas été reçu, 
+			// interdire les modifications 
+			// lorsque c'est fait, informer l'utilisateur 
+			// EX : en changeant la couleur de fond du P. 
+			// quelques secondes 
+
+			persister(jPClone); 
+
 		}
 	}); 
+
+function creerParagraphe(jLeParagraphe) {
+
+	var contenu = jLeParagraphe.html();
+	jLeParagraphe.addClass("disabled");
+	jLeParagraphe.data("disabled",true);
+
+	$.ajax({
+		type: "POST",
+		url: auth.base + "/articles/" 
+				+ auth.idArticle + "/paragraphes" ,
+		data: {	"hash":auth.hash,				
+				"contenu":contenu},
+		success: function(oRep){
+			// On associe les méta-données récupérées au Par. 
+			// Dans le scope de cette fonction, 
+			// se trouve la référence jLeParagraphe
+			// On peut donc lui associer ses méta-données 
+			jLeParagraphe.data(oRep.paragraphe);
+			jLeParagraphe.removeClass("disabled");
+			jLeParagraphe.data("disabled",false);
+			console.log(oRep);
+		},
+		dataType: "json"
+	});
+}
+
+/*
+contentType: 'application/json',
+    data: JSON.stringify(data),
+*/
+
+function persister(jLeParagraphe) {
+	// Interdire les futures modif 
+	jLeParagraphe.data("disabled",true);
+	jLeParagraphe.addClass("disabled");
+	var meta = jLeParagraphe.data();
+
+	var dataQS = {"hash":auth.hash,
+				"debug-data":true, 
+				"contenu":meta.contenu}; 
+
+	// Envoyer la requete 
+	$.ajax({
+		type: "PUT",
+		url: auth.base + "/articles/" 
+				+ auth.idArticle + "/paragraphes/" + meta.id 
+				+ "?hash=" + auth.hash
+				+ "&contenu=" + meta.contenu,	
+		//data: dataQS,
+		success: function(oRep){
+			// OK ! 
+			// Il faut maj le P dans la structure 
+			jLeParagraphe.removeClass("disabled");
+			jLeParagraphe.data("disabled",false);
+		},
+		dataType: "json"
+	});
+	
+}
 			
 /*
 Connexion à l'API
 */
 
-var auth = {
-	"base":"http://tomnab.fr/paragraphes-api", 
-	"hash":"1ebfedad872ccf5c49d61a50f3d543cc", 
-	"idArticle" : 16 
-}; 
 // user : tp14juin
 // article : "Article1"
+
+var auth = {
+	"base":"http://tomnab.fr/paragraphes-api", 
+	"hash":"1ebfedad872ccf5c49d61a50f3d543cc",
+	"idArticle" : 16 
+}; 
+
+var auth2 = {
+	"base":"http://localhost/rest/api", 
+	"hash":"10bca641466d835d3db9be02ab6e1d08",  
+	"idArticle" : 4 
+}; 
+
+	
+
 
 function getArticle() {
 
@@ -189,22 +288,6 @@ function getParagraphes() {
 		// lors des transformations <p> <=> <textarea>
 	}); 
 }
-
-
-/* // EXEMPLE
-$(document).ready(function(){
-
-	$.ajax({
-	  type: "POST",
-	  url: "http://tomnab.fr/paragraphes-api/authenticate",
-	  data: {"user":"tom","password":"web"},
-	  success: function(oRep){
-			console.log(oRep); 
-		},
-	  dataType: "json"
-	});
-});
-*/
 
 
 </script>
