@@ -111,6 +111,7 @@ var auth = {
 
 function getArticle() {
 
+/*
 	$.getJSON(	auth.base + "/articles/" + auth.idArticle, 
 				{"hash":auth.hash}, 
 				function(oRep){
@@ -121,19 +122,23 @@ function getArticle() {
 
 		$("body").prepend(divArticle);
 	}); 
-
-/* identique à : 
-	$.ajax({
-	  type: "GET",
-	  url: auth.base + "/articles/" + auth.idArticle,
-	  data: {"hash":auth.hash},
-	  success: function(oRep){
-			console.log(oRep);
-			$("body").prepend(); 
-		},
-	  dataType: "json"
-	});
 */
+
+// Alternative :  
+	$.ajax({
+		type: "GET",
+		url: auth.base + "/articles/" + auth.idArticle,
+		data: {"hash":auth.hash},
+		//headers: {"hash":auth.hash},
+		success: function(oRep){
+			var divArticle = $("<div>")
+					.html("Article " + oRep.article.id 
+							+ " : " + oRep.article.titre ); 
+
+			$("body").prepend(divArticle); 
+		},
+		dataType: "json"
+	});
 
 }
 
