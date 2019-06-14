@@ -1,0 +1,17 @@
+<script src="jquery-3.4.1.min.js"></script>
+<script>
+
+$(document).ready(function(){
+
+	$.ajax({
+	  type: "POST",
+	  url: "http://tomnab.fr/paragraphes-api/authenticate",
+	  data: {"user":"tom","password":"web"},
+	  success: function(oRep){
+			console.log(oRep); 
+		},
+	  dataType: "json"
+	});
+
+});
+</script>

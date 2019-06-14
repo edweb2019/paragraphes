@@ -1,0 +1,137 @@
+<script src="jquery-3.4.1.min.js"></script>
+<style>
+#contenu {padding:5px;}
+#contenu p:hover {
+	cursor:pointer;
+	border: 1px dashed black;
+}
+#contenu p {
+	padding:3px;
+}
+#contenu textarea {
+	display:block;
+	width:100%;
+	padding:3px;
+	margin : 3px 0;
+	resize:none;
+}
+</style>
+<script>
+
+//TODO 1) : au chargement de la page, 
+// Ajouter les boutons + en haut et en bas 
+// associés à un champ de saisie 
+// Chaque bouton + doit permettre l'insertion 
+// d'un nouveau paragraphe ayant pour contenu 
+// celui du champ à côté de lui 
+
+// BONUS: une seule fonction gestionnaire d'événement click
+// pour les DEUX boutons 
+
+//TODO 2) : permettre l'édition des paragraphes
+// Lors du survol : on change la forme du pointeur de souris
+// Lors du clic : on passe en mode "édition" en remplaçant le champ d'entrée texte par un champ de formulaire 
+// Appui sur entrée : valide la saisie
+// Appui sur ESC : annule la saisie et restaure le(s) paragraphe(s)
+
+var jP = $("<p>")
+			.html("Nouveau P"); 
+
+var jBtnPlus = $('<input type="button">')
+	.val("+")
+	.click(function(){
+		// $(this) dénotera le bouton effectif cliqué
+		console.log("bouton + " 
+					+ $(this).parent().data("pos"));
+
+		// $(this).parent() <=> <div commun>
+		// $(this).next() => frère suivant
+  
+		// Quel est le contenu du champ texte ? 
+		console.log("texte = " 
+					+ $(this).next().val());
+
+		var jPClone = jP.clone(); 
+		var contenu = $(this).next().val(); 
+		if (contenu != "") jPClone.html(contenu);
+		//$(this).next().val(""); // on vide
+
+		if ($(this).parent().data("pos") == "top") {
+			$("#contenu").prepend(jPClone);
+		} else {
+			$("#contenu").append(jPClone);
+		}
+		
+		// NB : .parents() existe 
+		// NB : .data() peut récupérer les attributs HTML5 data-* 		
+	}); 
+
+var jT = $('<input type="text"/>')
+			.click(function(){
+		$(this).select();	
+	}); 
+
+var jComposant = $("<div>")
+					.append(jBtnPlus)
+					.append(jT); 
+
+$(document).ready(function(){ // au chargement...
+
+	// ajout des composants btn +
+	$("body").prepend(jComposant.clone(true).data("pos","top"));
+	$("body").append(jComposant.clone(true).data("pos","bottom"));
+
+	// Clicks sur P (présents ET futurs) 
+	$(document).on("click","#contenu p", function(){
+		// $(this) dénote le P cliqué !
+		console.log("clic sur "  + $(this).html());
+
+		var contenu = $(this).html(); 
+		// TODO: On remplace ce <p> par un textarea
+		var jTaClone = jTa.clone(true).val(contenu); 
+		// NB: penser à sauvegarder sa valeur initiale !!
+		jTaClone.data("ancienContenu", contenu);
+		$(this).replaceWith(jTaClone);
+		jTaClone.focus(); 
+	});
+
+	// Survol des élements : data ?
+	$(document).on("mouseover", "#contenu *", function(){
+		console.log($(this).data());
+	}); 
+
+	// TODO: Appui sur ESC pour annuler 
+	$(document).keydown(function(contexte){
+		if(contexte.key == "Escape") {
+			// On parcourt les TA
+			$("#contenu textarea").each(function(){
+				var ancienContenu = $(this).data("ancienContenu");
+				$(this).replaceWith(jP.clone(true).html(ancienContenu));
+			});
+		}
+	});
+
+}); // fin ready
+
+var jTa = $("<textarea>")
+			.click(function(){$(this).select();})
+			.keydown(function(contexte){
+		console.log(contexte);	
+		if (contexte.key == "Enter") {
+			// TODO: remplacer ce <textarea> par un <p>	
+			var contenu = $(this).val();
+			$(this).replaceWith(jP.clone(true).html(contenu));
+		}
+	}); 
+			
+
+</script>
+
+<body>
+
+<div id="contenu">
+<p>P1</p><p>P2</p><p>P3</p><p>P4</p>
+</div>
+
+</body>
+
