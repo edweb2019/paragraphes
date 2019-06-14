@@ -63,8 +63,13 @@ $(document).ready(function(){ // au chargement...
 		var contenu = $(this).html(); 
 		// TODO: On remplace ce <p> par un textarea
 		var jTaClone = jTa.clone(true).val(contenu); 
-		// NB: penser à sauvegarder sa valeur initiale !!
-		jTaClone.data("ancienContenu", contenu);
+
+		// V1: penser à sauvegarder sa valeur initiale !!
+		// jTaClone.data("ancienContenu", contenu);
+
+		// Version API: on doit sauvegarder TOUTES les données
+		jTaClone.data($(this).data());
+
 		$(this).replaceWith(jTaClone);
 		jTaClone.focus(); 
 	});
@@ -79,8 +84,15 @@ $(document).ready(function(){ // au chargement...
 		if(contexte.key == "Escape") {
 			// On parcourt les TA
 			$("#contenu textarea").each(function(){
-				var ancienContenu = $(this).data("ancienContenu");
-				$(this).replaceWith(jP.clone(true).html(ancienContenu));
+				// V1
+				//var ancienContenu = $(this).data("ancienContenu");
+				//$(this).replaceWith(jP.clone(true).html(ancienContenu));
+
+				// Version API : l'ancien contenu s'appelle "contenu" ! 
+				var jPClone = jP.clone(true).html($(this).data("contenu")); 
+				jPClone.data($(this).data());
+
+				$(this).replaceWith(jPClone);
 			});
 		}
 	});
@@ -94,7 +106,15 @@ var jTa = $("<textarea>")
 		if (contexte.key == "Enter") {
 			// TODO: remplacer ce <textarea> par un <p>	
 			var contenu = $(this).val();
-			$(this).replaceWith(jP.clone(true).html(contenu));
+			var jPClone = jP.clone(true).html(contenu); 
+
+			// Version API : il faut restaurer les méta-données
+			jPClone.data($(this).data());
+
+			// On n'oublie pas de mettre à jour le contenu... 
+			jPClone.data("contenu",contenu);
+			
+			$(this).replaceWith(jPClone);
 		}
 	}); 
 			
@@ -164,6 +184,9 @@ function getParagraphes() {
 							.data(oRep.paragraphes[i]);							 
 			$("#contenu").append(jPClone);
 		}
+
+		// TODO: ne pas oublier de garder ces méta-données 
+		// lors des transformations <p> <=> <textarea>
 	}); 
 }
 
